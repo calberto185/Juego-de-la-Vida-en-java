@@ -11,6 +11,7 @@ import javax.swing.border.LineBorder;
 public class JuegoVida extends Thread implements Runnable {
 
     private JFrame frame;
+    private Dialog dialog;
     private JPanel main, tablero, info, control;
     private int[][] contenedor;
     private int[][] tableroActual;
@@ -18,56 +19,42 @@ public class JuegoVida extends Thread implements Runnable {
     private int[][] auxiliar;
     private JButton[][] botones;
     private JLabel texto1, texto2, texto3, texto4;
-    private JTextField x, y, tiempo;
+    private JTextField x, y, tiempo, individuos;
     private int filas;
     private int columnas;
     private int milisegundos;
+    private int organismos;
 
     private GridBagLayout layout;
 
     public JuegoVida() {
-        System.out.println(ColorRandom());
         Dialog();
     }
 
-    public JuegoVida(int filas, int columnas, int milisegundos) {
-        System.out.println(ColorRandom());
+    public JuegoVida(int filas, int columnas) {
         this.filas = filas;
         this.columnas = columnas;
-        this.milisegundos = milisegundos;
         construyePanelInferior();
-        construyeVentana(1600, 750);
-        empiezaJuego();
+        construyeVentana();
     }
-
-    private void start(int filas, int columnas, int milisegundos){
-        System.out.println(ColorRandom());
-        this.filas = filas;
-        this.columnas = columnas;
-        this.milisegundos = milisegundos;
-        construyePanelInferior();
-        construyeVentana(1600, 750);
-        empiezaJuego();
     
-    }
     private void Dialog() {
-        JDialog dialog = new JDialog();
+        dialog = new JDialog();
         dialog.setTitle("Menu de Control");
-//        dialog.setDefaultCloseOperation(dialog.EXIT_ON_CLOSE);
-        dialog.setSize(500, 400);
+        dialog.setSize(300, 250);
         dialog.setLocationRelativeTo(null);
         JPanel vista=new JPanel();
         GridBagLayout layout = new GridBagLayout();
         vista.setLayout(new GridLayout(8, 2));
-        vista.setBackground(Color(ColorRandom()));
+        vista.setBackground(Color.WHITE);
         JButton procesar = new JButton("INICIAR");
         procesar.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent me) {
                 filas = Integer.parseInt(x.getText().trim());
                 columnas =Integer.parseInt(y.getText().trim());
-                milisegundos =Integer.parseInt(tiempo.getText().trim());
-//                  start(filas, columnas, milisegundos);
-                  new JuegoVida(filas, columnas, milisegundos);
+                dialog.dispose();
+                new JuegoVida(filas, columnas);
+                  
             }
         });
         vista.add(new JLabel("Dimension en X"));
@@ -76,22 +63,20 @@ public class JuegoVida extends Thread implements Runnable {
         vista.add(new JLabel("Dimension en Y"));
         y = new JTextField();
         vista.add(y);
-        vista.add(new JLabel("Tiempo por generacion"));
-        tiempo = new JTextField();
-        vista.add(tiempo);
+        vista.add(new JLabel(""));
         vista.add(procesar);
         dialog.add(vista);
         dialog.setVisible(true);
     }
 
-    private void construyeVentana(int width, int heigth) {
+    private void construyeVentana() {
         frame = new JFrame("Juego de a vida");
-        frame.setSize(width, heigth);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         MainPanel();
         frame.add(main);
         frame.setVisible(true);
         frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
     }
 
     private void MainPanel() {
@@ -120,8 +105,8 @@ public class JuegoVida extends Thread implements Runnable {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridx = 1;
         gbc.gridy = 0;
-        gbc.weightx = 2;
-        gbc.weighty = 2;
+        gbc.weightx = 1.5;
+        gbc.weighty = 1.5;
         layout.setConstraints(control, gbc);
         main.add(control);
         botonControl();
@@ -141,20 +126,32 @@ public class JuegoVida extends Thread implements Runnable {
     }
 
     private void botonControl() {
-        control.setLayout(new GridLayout(6, 2));
+        control.setLayout(new GridLayout(30, 2));
+        control.add(new JLabel("Numero de Individuos Incial"));
+        individuos=new JTextField();
+        control.add(individuos);
+        control.add(new JLabel("Tiempo por Generacion"));
+        tiempo=new JTextField();
+        control.add(tiempo);
+        control.add(new JLabel(""));
         JButton Boton1 = new JButton("Iniciar");
         Boton1.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent me) {
-                System.out.println("click");
-                empiezaJuego();
+                System.out.println("Start");
+                milisegundos =Integer.parseInt(tiempo.getText().trim());
+                organismos =Integer.parseInt(individuos.getText().trim());
+                new Thread(new hilo()).start();
             }
         });
         control.add(Boton1);
-        control.add(new JButton("Parar"));
-        control.add(new JButton("Nuevos"));
-        control.add(new JButton("Color"));
-        control.add(new JButton("boton 5"));
-        control.add(new JButton("boton 6"));
+//        JButton Boton2 = new JButton("Parar");
+////        Boton2.addMouseListener(new MouseAdapter() {
+////            public void mouseClicked(MouseEvent me) {
+////                System.out.println("Parar");
+////                
+////            }
+////        });
+////        control.add(Boton2);
     }
 
     private void labelInfo() {
@@ -200,6 +197,15 @@ public class JuegoVida extends Thread implements Runnable {
 
     }
 
+    class hilo implements Runnable{
+
+        @Override
+        public void run() {
+                empiezaJuego();
+        }
+
+}
+    
     public void empiezaJuego() {
         contenedor = new int[3][3];
         tableroActual = new int[filas][columnas];
@@ -315,7 +321,7 @@ public class JuegoVida extends Thread implements Runnable {
     }
 
     public void iniciaVida() {
-        for (int j = 0; j < 800; j++) {
+        for (int j = 0; j < organismos; j++) {
             int y = (int) Math.floor(Math.random() * (0 - filas + 1) + filas);
             int x = (int) Math.floor(Math.random() * (0 - columnas + 1) + columnas);
             tableroActual[y][x] = 1;
@@ -340,7 +346,6 @@ public class JuegoVida extends Thread implements Runnable {
     }
 
     public static void main(String[] args) {
-//        new JuegoVida(40,40,120);
         new JuegoVida();
     }
 
